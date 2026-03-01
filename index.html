@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>OScar — Cognitive Agent Runtime</title>
+	<style>
+		*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+		:root {
+			--black: #0a0a0a;
+			--white: #f5f5f0;
+			--gray:  #888;
+			--border: 1px solid currentColor;
+			--mono: 'Courier New', Courier, monospace;
+		}
+
+		html, body {
+			height: 100%;
+			background: var(--black);
+			color: var(--white);
+			font-family: var(--mono);
+			overflow-x: hidden;
+		}
+
+		/* ── HERO ─────────────────────────────────────────────────────── */
+		#hero {
+			position: relative;
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			border-bottom: var(--border);
+		}
+
+		#scene {
+			position: absolute;
+			inset: 0;
+			/* scene fills the hero */
+		}
+
+		.hero-text {
+			position: relative;
+			z-index: 10;
+			padding: 2rem;
+			display: grid;
+			grid-template-columns: 1fr auto;
+			align-items: end;
+			gap: 2rem;
+			pointer-events: none;
+		}
+
+		h1 {
+			font-size: clamp(3rem, 10vw, 8rem);
+			font-weight: 400;
+			line-height: 0.9;
+			letter-spacing: -0.03em;
+			mix-blend-mode: difference;
+		}
+
+		.hero-tagline {
+			font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+			text-transform: uppercase;
+			letter-spacing: 0.15em;
+			color: var(--gray);
+			max-width: 18ch;
+			text-align: right;
+			line-height: 1.6;
+			mix-blend-mode: difference;
+		}
+
+		/* ── MARQUEE ──────────────────────────────────────────────────── */
+		.marquee-bar {
+			border-bottom: var(--border);
+			overflow: hidden;
+			white-space: nowrap;
+			font-size: 0.72rem;
+			text-transform: uppercase;
+			letter-spacing: 0.2em;
+			color: var(--gray);
+		}
+
+		.marquee-track {
+			display: inline-flex;
+			animation: marquee 24s linear infinite;
+		}
+
+		.marquee-track span {
+			padding: 0.6rem 3rem;
+			border-right: var(--border);
+		}
+
+		@keyframes marquee {
+			from { transform: translateX(0); }
+			to   { transform: translateX(-50%); }
+		}
+
+		/* ── GRID SECTION ─────────────────────────────────────────────── */
+		.grid-section {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			border-bottom: var(--border);
+		}
+
+		.cell {
+			padding: 2.5rem 2rem;
+			border-right: var(--border);
+		}
+		.cell:last-child { border-right: none; }
+
+		.cell-label {
+			font-size: 0.6rem;
+			text-transform: uppercase;
+			letter-spacing: 0.2em;
+			color: var(--gray);
+			margin-bottom: 1.2rem;
+		}
+
+		.cell-title {
+			font-size: 1.1rem;
+			font-weight: 400;
+			line-height: 1.3;
+			margin-bottom: 0.8rem;
+		}
+
+		.cell-body {
+			font-size: 0.78rem;
+			color: var(--gray);
+			line-height: 1.7;
+		}
+
+		/* ── INSTALL BLOCK ────────────────────────────────────────────── */
+		.install-section {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			border-bottom: var(--border);
+		}
+
+		.install-left {
+			padding: 3rem 2rem;
+			border-right: var(--border);
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+		}
+
+		.install-heading {
+			font-size: clamp(1.8rem, 4vw, 3.2rem);
+			font-weight: 400;
+			line-height: 1.05;
+			letter-spacing: -0.02em;
+		}
+
+		.install-right {
+			padding: 3rem 2rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.8rem;
+		}
+
+		.install-step {
+			display: flex;
+			gap: 1rem;
+			align-items: baseline;
+		}
+
+		.step-num {
+			font-size: 0.6rem;
+			color: var(--gray);
+			flex-shrink: 0;
+			letter-spacing: 0.1em;
+		}
+
+		code {
+			font-family: var(--mono);
+			font-size: 0.78rem;
+			background: #1a1a1a;
+			border: var(--border);
+			border-color: #333;
+			padding: 0.5rem 0.8rem;
+			display: block;
+			color: var(--white);
+			letter-spacing: 0.04em;
+		}
+
+		/* ── SPECS STRIP ──────────────────────────────────────────────── */
+		.specs-strip {
+			display: flex;
+			border-bottom: var(--border);
+		}
+
+		.spec {
+			flex: 1;
+			padding: 1.4rem 1.5rem;
+			border-right: var(--border);
+		}
+		.spec:last-child { border-right: none; }
+
+		.spec-key {
+			font-size: 0.55rem;
+			text-transform: uppercase;
+			letter-spacing: 0.2em;
+			color: var(--gray);
+			margin-bottom: 0.3rem;
+		}
+
+		.spec-val {
+			font-size: 0.8rem;
+		}
+
+		/* ── FOOTER ───────────────────────────────────────────────────── */
+		footer {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 1.2rem 2rem;
+			font-size: 0.65rem;
+			text-transform: uppercase;
+			letter-spacing: 0.15em;
+			color: var(--gray);
+		}
+
+		footer a {
+			color: inherit;
+			text-decoration: none;
+			border-bottom: 1px solid transparent;
+			transition: border-color 0.2s;
+		}
+		footer a:hover { border-color: var(--gray); }
+
+		/* ── RESPONSIVE ───────────────────────────────────────────────── */
+		@media (max-width: 768px) {
+			.grid-section   { grid-template-columns: 1fr; }
+			.cell           { border-right: none; border-bottom: var(--border); }
+			.cell:last-child { border-bottom: none; }
+			.install-section { grid-template-columns: 1fr; }
+			.install-left   { border-right: none; border-bottom: var(--border); }
+			.specs-strip    { flex-wrap: wrap; }
+			.spec           { flex: 1 0 50%; border-bottom: var(--border); }
+			.hero-text      { grid-template-columns: 1fr; }
+			.hero-tagline   { text-align: left; }
+		}
+	</style>
+
+	<script type="importmap">
+	{
+		"imports": {
+			"three":         "https://cdn.jsdelivr.net/npm/three@0.183.1/build/three.webgpu.js",
+			"three/webgpu":  "https://cdn.jsdelivr.net/npm/three@0.183.1/build/three.webgpu.js",
+			"three/tsl":     "https://cdn.jsdelivr.net/npm/three@0.183.1/build/three.tsl.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.1/examples/jsm/"
+		}
+	}
+	</script>
+</head>
+<body>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────── -->
+<section id="hero">
+	<div id="scene"></div>
+
+	<div class="hero-text">
+		<h1>OS<br>car</h1>
+		<p class="hero-tagline">Operating System<br>for Cognitive<br>Agent Runtime</p>
+	</div>
+</section>
+
+<!-- ── MARQUEE ────────────────────────────────────────────────────────── -->
+<div class="marquee-bar" aria-hidden="true">
+	<div class="marquee-track">
+		<span>Menu bar agent</span>
+		<span>Shell access</span>
+		<span>Filesystem tools</span>
+		<span>SSE streaming</span>
+		<span>Multi-agent</span>
+		<span>Docker sandbox</span>
+		<span>Spotlight integration</span>
+		<span>Session persistence</span>
+		<span>Menu bar agent</span>
+		<span>Shell access</span>
+		<span>Filesystem tools</span>
+		<span>SSE streaming</span>
+		<span>Multi-agent</span>
+		<span>Docker sandbox</span>
+		<span>Spotlight integration</span>
+		<span>Session persistence</span>
+	</div>
+</div>
+
+<!-- ── FEATURES ──────────────────────────────────────────────────────── -->
+<div class="grid-section">
+	<div class="cell">
+		<p class="cell-label">01 / Presence</p>
+		<p class="cell-title">Lives in your<br>menu bar</p>
+		<p class="cell-body">A persistent AI agent always one click away. Click the status icon to see your sessions list or start a new conversation from anywhere on your Mac.</p>
+	</div>
+	<div class="cell">
+		<p class="cell-label">02 / Interface</p>
+		<p class="cell-title">Quick Entry &<br>streaming output</p>
+		<p class="cell-body">Floating prompt box with a searchable agent picker. Real-time SSE responses with tool calls, token usage, and auto-generated session titles.</p>
+	</div>
+	<div class="cell">
+		<p class="cell-label">03 / Isolation</p>
+		<p class="cell-title">Docker<br>sandbox mode</p>
+		<p class="cell-body">Run cagent inside a Docker sandbox to isolate shell and filesystem tool calls inside a container. Enable --yolo to skip confirmation prompts.</p>
+	</div>
+</div>
+
+<!-- ── INSTALL ────────────────────────────────────────────────────────── -->
+<div class="install-section">
+	<div class="install-left">
+		<p class="install-heading">Get<br>running<br>in four<br>steps.</p>
+		<p class="cell-body" style="margin-top:2rem">Requires macOS 13+ and cagent v1.23+.<br>Any LLM provider supported by cagent works.</p>
+	</div>
+	<div class="install-right">
+		<div class="install-step">
+			<span class="step-num">01</span>
+			<code>brew install docker/tap/cagent</code>
+		</div>
+		<div class="install-step">
+			<span class="step-num">02</span>
+			<code>make init-config</code>
+		</div>
+		<div class="install-step">
+			<span class="step-num">03</span>
+			<code>export ANTHROPIC_API_KEY=sk-ant-…</code>
+		</div>
+		<div class="install-step">
+			<span class="step-num">04</span>
+			<code>make install &amp;&amp; open /Applications/OScar.app</code>
+		</div>
+	</div>
+</div>
+
+<!-- ── SPECS ─────────────────────────────────────────────────────────── -->
+<div class="specs-strip">
+	<div class="spec">
+		<p class="spec-key">Platform</p>
+		<p class="spec-val">macOS 13+</p>
+	</div>
+	<div class="spec">
+		<p class="spec-key">Language</p>
+		<p class="spec-val">Swift 5.9+</p>
+	</div>
+	<div class="spec">
+		<p class="spec-key">Backend</p>
+		<p class="spec-val">docker/cagent</p>
+	</div>
+	<div class="spec">
+		<p class="spec-key">Default model</p>
+		<p class="spec-val">claude-opus-4-6</p>
+	</div>
+	<div class="spec">
+		<p class="spec-key">License</p>
+		<p class="spec-val">MIT</p>
+	</div>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────────── -->
+<footer>
+	<span>OScar &copy; 2025</span>
+	<a href="https://github.com/docker/cagent">docker/cagent &nearr;</a>
+</footer>
+
+<!-- ── SCENE (inlined — works without a server) ───────────────────────── -->
+<script type="module">
+import * as THREE from 'three/webgpu';
+import {
+	uniform, refract, div, frameId, lightViewPosition,
+	float, positionView, positionViewDirection, screenUV, pass,
+	texture3D, time, screenCoordinate, normalView, texture,
+	Fn, vec2, vec3
+} from 'three/tsl';
+import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
+import { ImprovedNoise }  from 'three/addons/math/ImprovedNoise.js';
+import { bayer16 }        from 'three/addons/tsl/math/Bayer.js';
+import { bloom }          from 'three/addons/tsl/display/BloomNode.js';
+import { dof }            from 'three/addons/tsl/display/DepthOfFieldNode.js';
+
+const DEFAULTS = {
+	camera:    { position: [ -0.55, 0.45, 0.65 ], target: [ 0, 0.1, 0 ] },
+	object:    { shape: 'donut', position: [ 0, 0.26, 0 ], rotation: [ 0, 0, 0 ] },
+	animation: { autoSpin: true, spinSpeed: 0.008 },
+	lights: {
+		ambient: { color: '#ffffff', intensity: 1 },
+		spot:    { color: '#ffffff', intensity: 1 }
+	},
+	ground: { color: '#ffffff' }
+};
+
+function merge( defaults, overrides ) {
+	const out = {};
+	for ( const k of new Set( [ ...Object.keys( defaults ), ...Object.keys( overrides || {} ) ] ) ) {
+		const d = defaults[ k ], o = ( overrides || {} )[ k ];
+		out[ k ] = ( d && typeof d === 'object' && !Array.isArray( d ) )
+			? merge( d, o )
+			: ( o !== undefined ? o : d );
+	}
+	return out;
+}
+
+function createCausticTexture() {
+	const size = 512;
+	const canvas = document.createElement( 'canvas' );
+	canvas.width = canvas.height = size;
+	const ctx = canvas.getContext( '2d' );
+	const img = ctx.createImageData( size, size );
+	const d   = img.data;
+	for ( let y = 0; y < size; y++ ) {
+		for ( let x = 0; x < size; x++ ) {
+			const u = ( x / size ) * Math.PI * 6;
+			const v = ( y / size ) * Math.PI * 6;
+			let val =
+				Math.sin( u * 1.3 + Math.sin( v * 1.1 ) * 2.2 ) +
+				Math.sin( v * 1.7 + Math.sin( u * 1.5 ) * 1.8 ) +
+				Math.sin( ( u + v ) * 1.1 + Math.cos( u * 1.4 - v * 0.9 ) * 2.0 );
+			val = Math.min( 1, Math.pow( ( val + 3 ) / 6, 5 ) * 6 );
+			const i = ( y * size + x ) * 4;
+			d[ i ] = d[ i + 1 ] = d[ i + 2 ] = val * 255;
+			d[ i + 3 ] = 255;
+		}
+	}
+	ctx.putImageData( img, 0, 0 );
+	const tex = new THREE.CanvasTexture( canvas );
+	tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+	tex.colorSpace = THREE.SRGBColorSpace;
+	return tex;
+}
+
+function createTexture3D() {
+	const size = 128, repeat = 5, scale = 10;
+	const data  = new Uint8Array( size * size * size );
+	const perlin = new ImprovedNoise();
+	let i = 0;
+	for ( let z = 0; z < size; z++ )
+		for ( let y = 0; y < size; y++ )
+			for ( let x = 0; x < size; x++ )
+				data[ i++ ] = 128 + 128 * perlin.noise(
+					( x / size ) * repeat * scale,
+					( y / size ) * repeat * scale,
+					( z / size ) * repeat * scale
+				);
+	const tex = new THREE.Data3DTexture( data, size, size, size );
+	tex.format = THREE.RedFormat;
+	tex.minFilter = tex.magFilter = THREE.LinearFilter;
+	tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+	tex.unpackAlignment = 1;
+	tex.needsUpdate = true;
+	return tex;
+}
+
+function buildRingGeo() {
+	const shape = new THREE.Shape();
+	shape.absarc( 0, 0, 0.15, 0, Math.PI * 2, false );
+	const hole = new THREE.Path();
+	hole.absarc( 0, 0, 0.09, 0, Math.PI * 2, true );
+	shape.holes.push( hole );
+	const geo = new THREE.ExtrudeGeometry( shape, {
+		depth: 0.022, bevelEnabled: true,
+		bevelSegments: 10, bevelSize: 0.007,
+		bevelThickness: 0.007, steps: 1, curveSegments: 160
+	} );
+	geo.center();
+	geo.rotateX( - Math.PI / 2 );
+	return geo;
+}
+
+async function initScene( container, userConfig = {} ) {
+	const cfg = merge( DEFAULTS, userConfig );
+	const LAYER_VOL = 10;
+
+	const [ cx, cy, cz ] = cfg.camera.position;
+	const [ tx, ty, tz ] = cfg.camera.target;
+
+	const camera = new THREE.PerspectiveCamera(
+		35, container.clientWidth / container.clientHeight, 0.025, 5
+	);
+	camera.position.set( cx, cy, cz );
+
+	const scene = new THREE.Scene();
+	scene.background = new THREE.Color( cfg.ground.color );
+	scene.fog = new THREE.Fog( cfg.ground.color, 1.2, 2.8 );
+
+	const ambientLight = new THREE.AmbientLight( cfg.lights.ambient.color, cfg.lights.ambient.intensity );
+	scene.add( ambientLight );
+
+	const spotLight = new THREE.SpotLight( cfg.lights.spot.color, cfg.lights.spot.intensity );
+	spotLight.position.set( 0.2, 0.45, 0.15 );
+	spotLight.castShadow      = true;
+	spotLight.angle           = Math.PI / 6;
+	spotLight.penumbra        = 1;
+	spotLight.decay           = 2;
+	spotLight.distance        = 0;
+	spotLight.shadow.mapType  = THREE.HalfFloatType;
+	spotLight.shadow.mapSize.set( 1024, 1024 );
+	spotLight.shadow.camera.near = 0.1;
+	spotLight.shadow.camera.far  = 1;
+	spotLight.shadow.intensity   = Math.min( 1, cfg.lights.spot.intensity / 10 );
+	spotLight.layers.enable( LAYER_VOL );
+	scene.add( spotLight );
+
+	const geoDonut = new THREE.TorusGeometry( 0.12, 0.048, 192, 192 );
+	const geoRing  = buildRingGeo();
+
+	const causticMap = createCausticTexture();
+	const mat = new THREE.MeshPhysicalNodeMaterial();
+	mat.side         = THREE.DoubleSide;
+	mat.transparent  = true;
+	mat.color        = new THREE.Color( 0xffffff );
+	mat.transmission = 1;
+	mat.thickness    = 0.1;
+	mat.ior          = 1.52;
+	mat.metalness    = 0;
+	mat.roughness    = 0.04;
+
+	const causticOcclusion = uniform( 1.2 );
+	const causticEffect = Fn( () => {
+		const refVec  = refract( positionViewDirection.negate(), normalView, div( 1.0, mat.ior ) ).normalize();
+		const viewZ   = normalView.z.pow( causticOcclusion );
+		const uvCoord = refVec.xy.mul( 0.6 );
+		const causticColor = uniform( mat.color );
+		const ab  = normalView.z.pow( - 0.9 ).mul( 0.004 );
+		const proj = vec3(
+			texture( causticMap, uvCoord.add( vec2( ab.negate(), 0 ) ) ).r,
+			texture( causticMap, uvCoord.add( vec2( 0, ab.negate() ) ) ).g,
+			texture( causticMap, uvCoord.add( vec2( ab, ab ) ) ).b
+		);
+		return proj.mul( viewZ.mul( 60 ) ).add( viewZ ).mul( causticColor );
+	} )().toVar();
+
+	mat.castShadowNode = causticEffect;
+	mat.emissiveNode   = Fn( () => {
+		const half = lightViewPosition( spotLight ).sub( positionView ).normalize();
+		const dot  = float( positionViewDirection.dot( half.negate() ).saturate().pow( float( 3.0 ) ) );
+		return causticEffect.mul( dot.add( 0.1 ) ).mul( 0.025 );
+	} )();
+
+	const [ ox, oy, oz ] = cfg.object.position;
+	const [ rx, ry, rz ] = cfg.object.rotation;
+	const mesh = new THREE.Mesh( cfg.object.shape === 'ring' ? geoRing : geoDonut, mat );
+	mesh.position.set( ox, oy, oz );
+	mesh.rotation.set( rx, ry, rz );
+	mesh.castShadow = true;
+	scene.add( mesh );
+
+	const groundMat = new THREE.MeshStandardMaterial( { color: cfg.ground.color, roughness: 1, metalness: 0 } );
+	const ground = new THREE.Mesh( new THREE.PlaneGeometry( 8, 8 ), groundMat );
+	ground.rotation.x    = - Math.PI / 2;
+	ground.receiveShadow = true;
+	scene.add( ground );
+
+	const renderer = new THREE.WebGPURenderer( { antialias: true } );
+	renderer.shadowMap.enabled    = true;
+	renderer.shadowMap.transmitted = true;
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( container.clientWidth, container.clientHeight );
+	container.appendChild( renderer.domElement );
+
+	const noiseTexture3D = createTexture3D();
+	const smokeAmountU   = uniform( cfg.fog?.smokeAmount ?? 3 );
+	const fogColorU      = uniform( new THREE.Color( cfg.fog?.color ?? '#ffffff' ) );
+	const volumetricMat  = new THREE.VolumeNodeMaterial();
+	volumetricMat.steps      = 20;
+	volumetricMat.offsetNode = bayer16( screenCoordinate.add( frameId ) );
+	volumetricMat.scatteringNode = Fn( ( { positionRay } ) => {
+		const drift = vec3( time.mul( 0.01 ), 0, time.mul( 0.03 ) );
+		const grain = ( s, t = 1 ) =>
+			texture3D( noiseTexture3D, positionRay.add( drift.mul( t ) ).mul( s ).mod( 1 ), 0 ).r.add( 0.5 );
+		let density = grain( 1 );
+		density = density.mul( grain( 0.5, 1 ) );
+		density = density.mul( grain( 0.2, 2 ) );
+		return smokeAmountU.mix( 1, density ).mul( fogColorU );
+	} );
+
+	const volLayer = new THREE.Layers();
+	volLayer.disableAll();
+	volLayer.enable( LAYER_VOL );
+
+	const volumetricMesh = new THREE.Mesh( new THREE.BoxGeometry( 1.5, 0.5, 1.5 ), volumetricMat );
+	volumetricMesh.receiveShadow = true;
+	volumetricMesh.position.y   = 0.38;
+	volumetricMesh.layers.disableAll();
+	volumetricMesh.layers.enable( LAYER_VOL );
+	scene.add( volumetricMesh );
+
+	const renderPipeline = new THREE.RenderPipeline( renderer );
+	const scenePass  = pass( scene, camera );
+	const sceneDepth = scenePass.getTextureNode( 'depth' );
+	volumetricMat.depthNode = sceneDepth.sample( screenUV );
+
+	const volPass = pass( scene, camera, { depthBuffer: false, samples: 0 } );
+	volPass.setLayers( volLayer );
+	volPass.setResolutionScale( 0.5 );
+
+	const bloomPass    = bloom( volPass, 1, 1, 0 );
+	const volIntensity = uniform( 0.7 );
+	const dofPass = dof( scenePass, scenePass.getViewZNode(), 0.75, 0.2, cfg.dof?.bokehScale ?? 1.5 );
+	renderPipeline.outputNode = dofPass.add( bloomPass.mul( volIntensity ) );
+
+	const controls = new OrbitControls( camera, renderer.domElement );
+	controls.target.set( tx, ty, tz );
+	controls.minDistance = 0.3;
+	controls.maxDistance = 4;
+	controls.enableZoom = false;
+	controls.update();
+
+	const resizeObserver = new ResizeObserver( () => {
+		const w = container.clientWidth, h = container.clientHeight;
+		camera.aspect = w / h;
+		camera.updateProjectionMatrix();
+		renderer.setSize( w, h );
+	} );
+	resizeObserver.observe( container );
+
+	const { autoSpin, spinSpeed } = cfg.animation;
+	let spinning = autoSpin;
+	let speed    = spinSpeed;
+
+	renderer.setAnimationLoop( () => {
+		if ( spinning ) {
+			const t = Date.now() * ( speed / 0.008 ) * 0.0004;
+			mesh.rotation.y -= speed;
+			mesh.rotation.x  = Math.sin( t ) * 0.3;
+		}
+		controls.update();
+		renderPipeline.render();
+	} );
+}
+
+await initScene( document.getElementById('scene'), {
+	camera: {
+		position: [ -0.056, 1.008, 0.1411 ],
+		target:   [ 0, 0.1, 0 ]
+	},
+	object: {
+		shape:    "ring",
+		position: [ 0, 0.26, 0 ],
+		rotation: [ 0.2881, -847.631, 0 ]
+	},
+	animation: {
+		autoSpin:  true,
+		spinSpeed: 0.016
+	},
+	lights: {
+		ambient: { color: "#ffffff", intensity: 0.65 },
+		spot:    { color: "#ffffff", intensity: 0.8 }
+	},
+	ground: { color: "#000000" },
+	fog:    { color: "#ffffff", smokeAmount: 0.3 },
+	dof:    { bokehScale: 0 }
+} );
+</script>
+
+</body>
+</html>
