@@ -222,21 +222,103 @@
 		overflow: hidden;
 		background: #0f0f0f;
 		padding: 3rem 0;
+		position: relative;
 	}
+
+	.marquee-edge {
+		position: absolute;
+		top: 0; bottom: 0;
+		width: 180px;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+	}
+	.marquee-edge--left {
+		left: 0;
+		background: linear-gradient(to right, #0f0f0f 25%, transparent);
+		justify-content: flex-start;
+		padding-left: 1.5rem;
+	}
+	.marquee-edge--right {
+		right: 0;
+		background: linear-gradient(to left, #0f0f0f 25%, transparent);
+		justify-content: flex-end;
+		padding-right: 1.5rem;
+	}
+
+	.marquee-arrow {
+		background: none;
+		border: var(--border);
+		border-color: #333;
+		color: var(--white);
+		font-family: var(--mono);
+		font-size: 1rem;
+		width: 2.2rem;
+		height: 2rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 0.45;
+		transition: opacity 0.15s, background 0.12s, color 0.12s;
+	}
+	.marquee-arrow:hover  { opacity: 1; }
+	.marquee-arrow.active { opacity: 1; border-color: var(--white); }
 
 	.screens-track {
 		display: inline-flex;
 		gap: 3rem;
 		animation: marquee 30s linear infinite;
 	}
-	.screens-track:hover { animation-play-state: paused; }
 
 	.screens-track img {
 		height: 300px;
 		width: auto;
 		display: block;
 		flex-shrink: 0;
+		cursor: pointer;
+		transition: opacity 0.15s;
 	}
+	.screens-track img:hover { opacity: 0.85; }
+
+	/* ── MODAL ────────────────────────────────────────────────────── */
+	.img-modal {
+		display: none;
+		position: fixed;
+		inset: 0;
+		background: rgba(10, 10, 10, 0.96);
+		z-index: 1000;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+	.img-modal.open { display: flex; }
+
+	.img-modal img {
+		max-width: min(90vw, 860px);
+		max-height: 88vh;
+		object-fit: contain;
+		cursor: default;
+		animation: fadeSlide 0.2s ease;
+	}
+
+	.modal-close {
+		position: absolute;
+		top: 1.5rem;
+		right: 2rem;
+		background: none;
+		border: var(--border);
+		border-color: #444;
+		color: var(--white);
+		font-family: var(--mono);
+		font-size: 0.65rem;
+		letter-spacing: 0.15em;
+		text-transform: uppercase;
+		padding: 0.4rem 0.8rem;
+		cursor: pointer;
+		transition: background 0.1s, color 0.1s;
+	}
+	.modal-close:hover { background: var(--white); color: var(--black); }
 
 	/* ── FOOTER ───────────────────────────────────────────────────── */
 		footer {
@@ -369,6 +451,12 @@
 		<p class="cell-label" style="margin:0">04 / Interface</p>
 	</div>
 	<div class="screens-marquee">
+		<div class="marquee-edge marquee-edge--left">
+			<button class="marquee-arrow active" id="arrow-left" aria-label="Scroll left">&#8592;</button>
+		</div>
+		<div class="marquee-edge marquee-edge--right">
+			<button class="marquee-arrow" id="arrow-right" aria-label="Scroll right">&#8594;</button>
+		</div>
 		<div class="screens-track" aria-label="App screenshots">
 			<img src="screens/new%20chat.png" alt="Quick entry prompt">
 			<img src="screens/local.png" alt="Sessions list">
@@ -413,6 +501,51 @@
 	<span>OScar &copy; 2025</span>
 	<a href="https://github.com/docker/cagent">docker/cagent &nearr;</a>
 </footer>
+
+<!-- ── MODAL ─────────────────────────────────────────────────────────── -->
+<div class="img-modal" id="img-modal">
+	<button class="modal-close" id="modal-close">esc</button>
+	<img id="modal-img" src="" alt="">
+</div>
+
+<!-- ── SCREENS JS ─────────────────────────────────────────────────────── -->
+<script>
+(function () {
+	const track      = document.querySelector('.screens-track');
+	const arrowLeft  = document.getElementById('arrow-left');
+	const arrowRight = document.getElementById('arrow-right');
+	const modal      = document.getElementById('img-modal');
+	const modalImg   = document.getElementById('modal-img');
+
+	/* direction arrows — left = normal (scrolls left), right = reverse */
+	function setDir(dir) {
+		track.style.animationDirection = dir === 'right' ? 'reverse' : 'normal';
+		arrowLeft.classList.toggle('active',  dir === 'left');
+		arrowRight.classList.toggle('active', dir === 'right');
+	}
+	arrowLeft.addEventListener('click',  () => setDir('left'));
+	arrowRight.addEventListener('click', () => setDir('right'));
+
+	/* modal open */
+	track.querySelectorAll('img').forEach(img => {
+		img.addEventListener('click', () => {
+			modalImg.src = img.src;
+			modalImg.alt = img.alt;
+			modal.classList.add('open');
+			document.body.style.overflow = 'hidden';
+		});
+	});
+
+	/* modal close */
+	function closeModal() {
+		modal.classList.remove('open');
+		document.body.style.overflow = '';
+	}
+	document.getElementById('modal-close').addEventListener('click', closeModal);
+	modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+	document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+}());
+</script>
 
 <!-- ── SCENE (inlined — works without a server) ───────────────────────── -->
 <script type="module">
