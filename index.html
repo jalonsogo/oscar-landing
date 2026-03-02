@@ -208,7 +208,7 @@
 			font-size: 0.8rem;
 		}
 
-		/* ── SCREENS GRID ────────────────────────────────────────────── */
+		/* ── SCREENS MARQUEE ─────────────────────────────────────────── */
 	.screens-section {
 		border-bottom: var(--border);
 	}
@@ -218,34 +218,24 @@
 		border-bottom: var(--border);
 	}
 
-	.screens-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+	.screens-marquee {
+		overflow: hidden;
 		background: #0f0f0f;
+		padding: 3rem 0;
 	}
 
-	.screen-cell {
-		padding: 1.5rem;
-		border-right: 1px solid #222;
-		border-bottom: 1px solid #222;
-		display: flex;
-		flex-direction: column;
-		gap: 0.8rem;
+	.screens-track {
+		display: inline-flex;
+		gap: 3rem;
+		animation: marquee 30s linear infinite;
 	}
-	.screen-cell:nth-child(4n) { border-right: none; }
+	.screens-track:hover { animation-play-state: paused; }
 
-	.screen-cell img {
-		width: 100%;
-		height: 160px;
-		object-fit: contain;
+	.screens-track img {
+		height: 300px;
+		width: auto;
 		display: block;
-	}
-
-	.screen-label {
-		font-size: 0.6rem;
-		text-transform: uppercase;
-		letter-spacing: 0.2em;
-		color: #555;
+		flex-shrink: 0;
 	}
 
 	/* ── FOOTER ───────────────────────────────────────────────────── */
@@ -279,10 +269,7 @@
 			.spec           { flex: 1 0 50%; border-bottom: var(--border); }
 			.hero-text      { grid-template-columns: 1fr; }
 			.hero-tagline   { text-align: left; }
-		.screens-grid   { grid-template-columns: repeat(2, 1fr); }
-		.screen-cell:nth-child(4n) { border-right: 1px solid #222; }
-		.screen-cell:nth-child(2n) { border-right: none; }
-		.screen-cell img { height: 120px; }
+		.screens-track img { height: 200px; }
 		}
 	</style>
 
@@ -381,34 +368,18 @@
 	<div class="screens-header">
 		<p class="cell-label" style="margin:0">04 / Interface</p>
 	</div>
-	<div class="screens-grid">
-		<div class="screen-cell">
+	<div class="screens-marquee">
+		<div class="screens-track" aria-label="App screenshots">
 			<img src="screens/new%20chat.png" alt="Quick entry prompt">
-			<p class="screen-label">Quick entry</p>
-		</div>
-		<div class="screen-cell">
-			<img src="screens/new%20chat%20-%20ask.png" alt="Ask mode">
-			<p class="screen-label">Ask mode</p>
-		</div>
-		<div class="screen-cell">
 			<img src="screens/local.png" alt="Sessions list">
-			<p class="screen-label">Sessions</p>
-		</div>
-		<div class="screen-cell">
 			<img src="screens/agents.png" alt="Agents panel">
-			<p class="screen-label">Agents</p>
-		</div>
-		<div class="screen-cell">
 			<img src="screens/settings.png" alt="General settings">
-			<p class="screen-label">Settings</p>
-		</div>
-		<div class="screen-cell">
 			<img src="screens/settings-agents.png" alt="Agent settings">
-			<p class="screen-label">Agent settings</p>
-		</div>
-		<div class="screen-cell">
-			<img src="screens/settings-docker.png" alt="Docker settings">
-			<p class="screen-label">Docker settings</p>
+			<img src="screens/new%20chat.png" alt="" aria-hidden="true">
+			<img src="screens/local.png" alt="" aria-hidden="true">
+			<img src="screens/agents.png" alt="" aria-hidden="true">
+			<img src="screens/settings.png" alt="" aria-hidden="true">
+			<img src="screens/settings-agents.png" alt="" aria-hidden="true">
 		</div>
 	</div>
 </div>
