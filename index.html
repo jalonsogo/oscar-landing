@@ -208,7 +208,93 @@
 			font-size: 0.8rem;
 		}
 
-		/* ── FOOTER ───────────────────────────────────────────────────── */
+		/* ── SCREENS SLIDER ──────────────────────────────────────────── */
+	.screens-section {
+		border-bottom: var(--border);
+	}
+
+	.screens-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.8rem 2rem;
+		border-bottom: var(--border);
+	}
+
+	.screens-nav {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.nav-btn {
+		background: none;
+		border: var(--border);
+		border-color: #444;
+		color: var(--white);
+		font-family: var(--mono);
+		font-size: 0.85rem;
+		width: 2rem;
+		height: 1.8rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: background 0.1s, color 0.1s;
+	}
+	.nav-btn:hover {
+		background: var(--white);
+		color: var(--black);
+	}
+
+	.slide-counter {
+		font-size: 0.65rem;
+		text-transform: uppercase;
+		letter-spacing: 0.15em;
+		color: var(--gray);
+		min-width: 6ch;
+		text-align: center;
+	}
+
+	.screens-viewport {
+		background: #0f0f0f;
+		overflow: hidden;
+	}
+
+	.slide {
+		display: none;
+		padding: 3.5rem 4rem;
+		flex-direction: column;
+		align-items: center;
+	}
+	.slide.active {
+		display: flex;
+		animation: fadeSlide 0.25s ease;
+	}
+
+	@keyframes fadeSlide {
+		from { opacity: 0; transform: translateY(6px); }
+		to   { opacity: 1; transform: translateY(0); }
+	}
+
+	.slide img {
+		max-width: min(100%, 680px);
+		max-height: 540px;
+		object-fit: contain;
+		display: block;
+		border: 1px solid #2a2a2a;
+		box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+	}
+
+	.slide-caption {
+		margin-top: 1.4rem;
+		font-size: 0.6rem;
+		text-transform: uppercase;
+		letter-spacing: 0.2em;
+		color: #555;
+	}
+
+	/* ── FOOTER ───────────────────────────────────────────────────── */
 		footer {
 			display: flex;
 			justify-content: space-between;
@@ -239,6 +325,8 @@
 			.spec           { flex: 1 0 50%; border-bottom: var(--border); }
 			.hero-text      { grid-template-columns: 1fr; }
 			.hero-tagline   { text-align: left; }
+		.slide          { padding: 2rem 1.5rem; }
+		.slide img      { max-height: 360px; }
 		}
 	</style>
 
@@ -332,6 +420,48 @@
 	</div>
 </div>
 
+<!-- ── SCREENS ───────────────────────────────────────────────────────── -->
+<div class="screens-section">
+	<div class="screens-header">
+		<p class="cell-label" style="margin:0">04 / Interface</p>
+		<div class="screens-nav">
+			<button class="nav-btn" id="prev-btn" aria-label="Previous">&#8592;</button>
+			<span class="slide-counter"><span id="slide-current">01</span>&thinsp;/&thinsp;07</span>
+			<button class="nav-btn" id="next-btn" aria-label="Next">&#8594;</button>
+		</div>
+	</div>
+	<div class="screens-viewport">
+		<div class="slide active">
+			<img src="screens/new%20chat.png" alt="Quick entry prompt">
+			<p class="slide-caption">Quick entry</p>
+		</div>
+		<div class="slide">
+			<img src="screens/new%20chat%20-%20ask.png" alt="Ask mode">
+			<p class="slide-caption">Ask mode</p>
+		</div>
+		<div class="slide">
+			<img src="screens/local.png" alt="Sessions list">
+			<p class="slide-caption">Sessions</p>
+		</div>
+		<div class="slide">
+			<img src="screens/agents.png" alt="Agents panel">
+			<p class="slide-caption">Agents</p>
+		</div>
+		<div class="slide">
+			<img src="screens/settings.png" alt="General settings">
+			<p class="slide-caption">Settings</p>
+		</div>
+		<div class="slide">
+			<img src="screens/settings-agents.png" alt="Agent settings">
+			<p class="slide-caption">Agent settings</p>
+		</div>
+		<div class="slide">
+			<img src="screens/settings-docker.png" alt="Docker settings">
+			<p class="slide-caption">Docker settings</p>
+		</div>
+	</div>
+</div>
+
 <!-- ── SPECS ─────────────────────────────────────────────────────────── -->
 <div class="specs-strip">
 	<div class="spec">
@@ -361,6 +491,39 @@
 	<span>OScar &copy; 2025</span>
 	<a href="https://github.com/docker/cagent">docker/cagent &nearr;</a>
 </footer>
+
+<!-- ── SLIDER ────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+	const slides    = Array.from(document.querySelectorAll('.slide'));
+	const counterEl = document.getElementById('slide-current');
+	const total     = slides.length;
+	let current     = 0;
+	let touchStartX = 0;
+
+	function show(index) {
+		slides[current].classList.remove('active');
+		current = ((index % total) + total) % total;
+		slides[current].classList.add('active');
+		counterEl.textContent = String(current + 1).padStart(2, '0');
+	}
+
+	document.getElementById('prev-btn').addEventListener('click', () => show(current - 1));
+	document.getElementById('next-btn').addEventListener('click', () => show(current + 1));
+
+	document.addEventListener('keydown', e => {
+		if (e.key === 'ArrowLeft')  show(current - 1);
+		if (e.key === 'ArrowRight') show(current + 1);
+	});
+
+	const vp = document.querySelector('.screens-viewport');
+	vp.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+	vp.addEventListener('touchend',   e => {
+		const dx = e.changedTouches[0].clientX - touchStartX;
+		if (Math.abs(dx) > 40) show(current + (dx < 0 ? 1 : -1));
+	});
+}());
+</script>
 
 <!-- ── SCENE (inlined — works without a server) ───────────────────────── -->
 <script type="module">
