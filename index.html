@@ -268,7 +268,7 @@
 	.screens-track {
 		display: inline-flex;
 		gap: 3rem;
-		animation: marquee 30s linear infinite;
+		will-change: transform;
 	}
 
 	.screens-track img {
@@ -290,7 +290,6 @@
 		z-index: 1000;
 		align-items: center;
 		justify-content: center;
-		cursor: pointer;
 	}
 	.img-modal.open { display: flex; }
 
@@ -298,8 +297,7 @@
 		max-width: min(90vw, 860px);
 		max-height: 88vh;
 		object-fit: contain;
-		cursor: default;
-		animation: fadeSlide 0.2s ease;
+		transition: opacity 0.15s ease;
 	}
 
 	.modal-close {
@@ -319,6 +317,28 @@
 		transition: background 0.1s, color 0.1s;
 	}
 	.modal-close:hover { background: var(--white); color: var(--black); }
+
+	.modal-nav {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		background: none;
+		border: var(--border);
+		border-color: #333;
+		color: var(--white);
+		font-family: var(--mono);
+		font-size: 1rem;
+		width: 2.5rem;
+		height: 2.2rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: background 0.1s, color 0.1s;
+	}
+	.modal-nav:hover  { background: var(--white); color: var(--black); }
+	.modal-nav--prev  { left: 2rem; }
+	.modal-nav--next  { right: 2rem; }
 
 	/* ── FOOTER ───────────────────────────────────────────────────── */
 		footer {
@@ -504,8 +524,10 @@
 
 <!-- ── MODAL ─────────────────────────────────────────────────────────── -->
 <div class="img-modal" id="img-modal">
-	<button class="modal-close" id="modal-close">esc</button>
+	<button class="modal-close"          id="modal-close">esc</button>
+	<button class="modal-nav modal-nav--prev" id="modal-prev">&#8592;</button>
 	<img id="modal-img" src="" alt="">
+	<button class="modal-nav modal-nav--next" id="modal-next">&#8594;</button>
 </div>
 
 <!-- ── SCREENS JS ─────────────────────────────────────────────────────── -->
@@ -517,33 +539,76 @@
 	const modal      = document.getElementById('img-modal');
 	const modalImg   = document.getElementById('modal-img');
 
-	/* direction arrows — left = normal (scrolls left), right = reverse */
+	/* ── MARQUEE (rAF-driven so direction changes don't reset position) ── */
+	const SPEED = 0.4;   // px per frame — gentle drift
+	let pos     = 0;
+	let vel     = -SPEED; // negative = scrolling left
+	let halfW   = 0;
+	let hovered = false;
+
+	window.addEventListener('load', () => { halfW = track.scrollWidth / 2; });
+
+	track.addEventListener('mouseenter', () => { hovered = true; });
+	track.addEventListener('mouseleave', () => { hovered = false; });
+
+	(function tick() {
+		if (halfW && !hovered) {
+			pos += vel;
+			if (pos <= -halfW) pos += halfW;
+			if (pos >= 0)      pos -= halfW;
+			track.style.transform = `translateX(${pos}px)`;
+		}
+		requestAnimationFrame(tick);
+	}());
+
+	/* direction arrows */
 	function setDir(dir) {
-		track.style.animationDirection = dir === 'right' ? 'reverse' : 'normal';
+		vel = dir === 'right' ? SPEED : -SPEED;
 		arrowLeft.classList.toggle('active',  dir === 'left');
 		arrowRight.classList.toggle('active', dir === 'right');
 	}
 	arrowLeft.addEventListener('click',  () => setDir('left'));
 	arrowRight.addEventListener('click', () => setDir('right'));
 
-	/* modal open */
-	track.querySelectorAll('img').forEach(img => {
-		img.addEventListener('click', () => {
-			modalImg.src = img.src;
-			modalImg.alt = img.alt;
-			modal.classList.add('open');
-			document.body.style.overflow = 'hidden';
-		});
-	});
+	/* ── MODAL ───────────────────────────────────────────────────────── */
+	const sources = Array.from(track.querySelectorAll('img:not([aria-hidden])'));
+	let idx = 0;
 
-	/* modal close */
+	function showModal(i) {
+		idx = ((i % sources.length) + sources.length) % sources.length;
+		modalImg.style.opacity = '0';
+		requestAnimationFrame(() => {
+			modalImg.src = sources[idx].src;
+			modalImg.alt = sources[idx].alt;
+			modalImg.style.opacity = '1';
+		});
+		modal.classList.add('open');
+		document.body.style.overflow = 'hidden';
+	}
+
 	function closeModal() {
 		modal.classList.remove('open');
 		document.body.style.overflow = '';
 	}
+
+	track.querySelectorAll('img').forEach(img => {
+		img.addEventListener('click', () => {
+			const i = sources.findIndex(s => s.src === img.src);
+			showModal(i);
+		});
+	});
+
+	document.getElementById('modal-prev').addEventListener('click', e => { e.stopPropagation(); showModal(idx - 1); });
+	document.getElementById('modal-next').addEventListener('click', e => { e.stopPropagation(); showModal(idx + 1); });
 	document.getElementById('modal-close').addEventListener('click', closeModal);
 	modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-	document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+	document.addEventListener('keydown', e => {
+		if (!modal.classList.contains('open')) return;
+		if (e.key === 'Escape')      closeModal();
+		if (e.key === 'ArrowLeft')   showModal(idx - 1);
+		if (e.key === 'ArrowRight')  showModal(idx + 1);
+	});
 }());
 </script>
 
